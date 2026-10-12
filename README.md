@@ -30,5 +30,4 @@
 ## What I learned
 - PNG files are built from chunks (IHDR, IDAT, IEND), each with a CRC.
 - Checksums reveal tampering and confirm that a fix is correct.
-- Compressed image data cannot be searched as plain text.
 - A changed header height can hide part of an image.
