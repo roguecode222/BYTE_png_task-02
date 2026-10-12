@@ -10,7 +10,6 @@
 
 ## Tools
 - HxD hex editor
-- Claude (AI assistant) for guidance and for explaining the PNG structure
 
 ## How I did it
 1. I downloaded the corrupted PNG. It would not open normally.
