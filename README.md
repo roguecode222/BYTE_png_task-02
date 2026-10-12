@@ -1,26 +1,35 @@
-# PNG Forensics Challenge – Find the Flag
-
-**Goal:** find the hidden flag (format `flag{...}`) in `challenge.png`.
+# BYTE PNG challenge
+**Task:** Find the hidden flag (format `flag{...}`) in a corrupted PNG file.
 
 **Flag:** `flag{g0t_1t_in_pLAin_sight}`
 
 ## Files
-- `challenge.png` – the original (corrupted) challenge file
-- `challenge_fixed.png` – the repaired image, flag visible at the bottom
-- `solve.py` – script that repairs the file automatically
-
-## Approach (short)
-1. The file would not open, so I inspected its raw bytes and PNG chunks.
-2. The IHDR header said the height was 800, but its CRC checksum only matched a height of 850. The bottom 50 rows (with the flag) were hidden.
-3. A fake `IEND` chunk (12 bytes) was inserted at offset `0x21C89` inside the image data, corrupting everything after it.
-4. I removed the fake chunk and restored the true height. The CRC checks then matched and the image decoded cleanly.
+- `challenge.png` - original corrupted file
+- `challenge_fixed.png` - repaired image (flag visible at the bottom)
+- `screenshots` - my HxD steps
 
 ## Tools
-Python 3 (`struct`, `zlib`, Pillow), HxD hex editor.
+- HxD hex editor
+- Claude (AI assistant) for guidance and for explaining the PNG structure
 
-## How to run
-```
-pip install pillow
-python solve.py
-```
-This creates `challenge_fixed.png`.
+## How I did it
+1. I downloaded the corrupted PNG. It would not open normally.
+2. I opened it in HxD and searched for `flag{` thinking that the flag would be in chunks but found nothing, because
+   the flag is part of the image pixels.
+3. I learned that a PNG is made of chunks, and each chunk has a CRC
+   checksum that detects tampering.
+4. I found two problems:
+   - The height in the header was changed from 850 to 800, which hid the
+     bottom 50 rows where the flag was. Only 850 matched the header's CRC.
+   - A fake `IEND` chunk (12 bytes) was placed inside the image data at
+     offset `0x21C89`. A valid PNG has `IEND` only once, at the end.
+5. I fixed it in HxD: changed the height bytes from `00 00 03 20` to
+   `00 00 03 52`, and deleted the 12 fake bytes
+   `00 00 00 00 49 45 4E 44 AE 42 60 82`.
+6. I saved the file and opened it. The flag was in the bottom strip.
+
+## What I learned
+- PNG files are built from chunks (IHDR, IDAT, IEND), each with a CRC.
+- Checksums reveal tampering and confirm that a fix is correct.
+- Compressed image data cannot be searched as plain text.
+- A changed header height can hide part of an image.
